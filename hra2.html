@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 10px;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="board" id="board"></div>
+
+<script>
+    const symbols = ["AB", "CD", "EF", "GH"];
+    let board = [];
+    let revealedBoard = [];
+    let selectedCards = [];
+    let pairsFound = 0;
+
+    function initializeBoard() {
+        symbols.sort(() => Math.random() - 0.5);
+        board = symbols.concat(symbols);
+        board.sort(() => Math.random() - 0.5);
+
+        for (let i = 0; i < 4; i++) {
+            revealedBoard[i] = [];
+            for (let j = 0; j < 2; j++) {
+                revealedBoard[i][j] = false;
+            }
+        }
+    }
+
+    function renderBoard() {
+        const boardElement = document.getElementById("board");
+        boardElement.innerHTML = "";
+
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 2; j++) {
+                const cardElement = document.createElement("div");
+                cardElement.classList.add("card");
+                cardElement.dataset.row = i;
+                cardElement.dataset.col = j;
+
+                if (revealedBoard[i][j]) {
+                    cardElement.textContent = board[i * 2 + j];
+                    cardElement.style.backgroundColor = "#fff";
+                } else {
+                    cardElement.addEventListener("click", handleCardClick);
+                }
+
+                boardElement.appendChild(cardElement);
+            }
+        }
+    }
+
+    function handleCardClick(event) {
+        const clickedCard = event.target;
+        const row = parseInt(clickedCard.dataset.row);
+        const col = parseInt(clickedCard.dataset.col);
+
+        if (!revealedBoard[row][col] && selectedCards.length < 2) {
+            revealedBoard[row][col] = true;
+            renderBoard();
+            selectedCards.push({ row, col });
+
+            if (selectedCards.length === 2) {
+                const [card1, card2] = selectedCards;
+
+                if (board[card1.row * 2 + card1.col] !== board[card2.row * 2 + card2.col]) {
+                    setTimeout(() => {
+                        revealedBoard[card1.row][card1.col] = false;
+                        revealedBoard[card2.row][card2.col] = false;
+                        renderBoard();
+                        selectedCards = [];
+                    }, 1000);
+                } else {
+                    pairsFound++;
+
+                    if (pairsFound === 4) {
+                        alert("Congratulations! You've matched all pairs.");
+                        initializeBoard();
+                        renderBoard();
+                        pairsFound = 0;
+                    } else {
+                        selectedCards = [];
+                    }
+                }
+            }
+        }
+    }
+
+    initializeBoard();
+    renderBoard();
+</script>
+
+</body>
+</html>
